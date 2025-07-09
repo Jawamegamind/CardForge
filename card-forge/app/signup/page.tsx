@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { register } from './actions';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -31,6 +32,28 @@ export default function SignupPage() {
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
 
+    // if (!formData.firstName.trim()) {
+    //   newErrors.firstName = 'First name is required';
+    // }
+
+    // if (!formData.lastName.trim()) {
+    //   newErrors.lastName = 'Last name is required';
+    // }
+
+    // if (!formData.email.trim()) {
+    //   newErrors.email = 'Email is required';
+    // } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    //   newErrors.email = 'Please enter a valid email';
+    // }
+
+    // if (!formData.password) {
+    //   newErrors.password = 'Password is required';
+    // } else if (formData.password.length < 8) {
+    //   newErrors.password = 'Password must be at least 8 characters';
+    // } else if (!/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/.test(formData.password)) {
+    //   newErrors.password = 'Password must include uppercase, lowercase, and number';
+    // }
+
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
@@ -52,10 +75,31 @@ export default function SignupPage() {
     setIsLoading(true);
     
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Handle signup logic here
     console.log('Signup attempt:', formData);
+
+    // Calling the register action
+    const formDataObj = new FormData();
+    formDataObj.append('email', formData.email);
+    formDataObj.append('password', formData.password);
+    formDataObj.append('confirmPassword', formData.confirmPassword);
+    
+    const response = await register(formDataObj);
+
+    // Checking the response from the register action for specific errors 
+    if (response === "User already exists") {
+      setErrors(prev => ({
+        ...prev,
+        email: 'A user with this email already exists'
+      }));
+    } else if (response === "User registration failed") {
+      setErrors(prev => ({
+        ...prev,
+        general: 'User registration failed. Please try again.'
+      }));
+    }
     
     setIsLoading(false);
   };
