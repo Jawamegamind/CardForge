@@ -85,7 +85,13 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
         <div className="flex flex-col gap-4 rounded-box bg-base-200 p-6 max-w-md">
-            <h1 className="text-3xl font-bold self-center">Create an account</h1>
+            {/* CardForge Logo */}
+            <div className="text-center mb-2">
+                <h1 className="text-4xl font-bold text-primary mb-2">CardForge</h1>
+                <p className="text-base-content/70 text-sm">Create professional business cards with ease</p>
+            </div>
+            
+            <h2 className="text-2xl font-bold self-center">Create an account</h2>
 
             <span className="self-center">
                 Already have an account?{' '}
