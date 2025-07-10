@@ -53,14 +53,22 @@ export async function login(formData: FormData) {
         // Now redirecting the user to the application dashboard
         redirect('/dashboard')
     }
-    //     if (userObject.role == "admin") {
-    //         console.log("The user is admin")
-    //         redirect('/admin/dashboard')
-    //     }
-    //     else if (userObject.role == "user") {
-    //         // Sign in successful so we redirect to the dashboard
-    //         revalidatePath('/', 'layout')
-    //         redirect('/user/dashboard')
-    //     }
-    // }
-  }
+}
+
+// Function for loggin out the user
+export async function logout() {
+    console.log("logout action")
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
+
+    // Signing out using supabase auth
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
+        console.error('Error logging out:', error)
+    }
+
+    // Redirecting to the login page after successful logout
+    revalidatePath('/', 'layout')
+    redirect('/login')
+}
