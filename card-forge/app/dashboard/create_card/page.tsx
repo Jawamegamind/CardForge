@@ -1,11 +1,8 @@
 'use client'
 
-// app/dashboard/create/page.tsx
-'use client';
-
 import { useState, useRef } from 'react';
-// import html2canvas from 'html2canvas';
-// import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 export default function CreateCardPage() {
   const [cardData, setCardData] = useState({
