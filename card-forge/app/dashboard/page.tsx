@@ -5,6 +5,11 @@ import CreateCardForm from "../_components/createCardForm"
 import Link from "next/link"
 
 export default function Dashboard() {
+    // Function for modal pop up trigger
+    function modalTrigger() {
+        (document.getElementById('create_card_modal') as HTMLDialogElement)?.showModal()
+    }
+
     return (
         <div className="min-h-screen bg-base-200">
             <Navbar />
@@ -62,15 +67,9 @@ export default function Dashboard() {
                             <div className="card-body">
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="card-title text-2xl">My Business Cards</h2>
-                                    {/* <Link href="/dashboard/create_card" className="btn btn-primary btn-sm">
-                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        New Card
-                                    </Link> */}
                                     <button
                                         className="btn btn-primary btn-sm"
-                                        onClick={() => (document.getElementById('create_card_modal') as HTMLDialogElement)?.showModal()}
+                                        onClick={modalTrigger}
                                         >
                                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -141,14 +140,8 @@ export default function Dashboard() {
                             <div className="card-body">
                                 <h3 className="card-title mb-4">Quick Actions</h3>
                                 <div className="space-y-3">
-                                    {/* <Link href="/dashboard/create_card" className="btn btn-outline btn-block justify-start">
-                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        Create New Card
-                                    </Link> */}
                                     <button 
-                                    onClick={() => (document.getElementById('create_card_modal') as HTMLDialogElement)?.showModal()} 
+                                    onClick={modalTrigger} 
                                     className="btn btn-outline btn-block justify-start">
                                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
