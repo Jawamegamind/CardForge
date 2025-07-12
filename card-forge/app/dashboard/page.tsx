@@ -1,6 +1,12 @@
 import Navbar from "../_components/navbar"
+import Link from "next/link"
 
 export default function Dashboard() {
+    // Function for redirecting user to the create card page
+    function createCardPage () {
+
+    }
+
     return (
         <div className="min-h-screen bg-base-200">
             <Navbar />
@@ -58,12 +64,12 @@ export default function Dashboard() {
                             <div className="card-body">
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="card-title text-2xl">My Business Cards</h2>
-                                    <button className="btn btn-primary btn-sm">
+                                    <Link href="/dashboard/create_card" className="btn btn-primary btn-sm">
                                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                         </svg>
                                         New Card
-                                    </button>
+                                    </Link>
                                 </div>
                                 
                                 {/* Business Cards Grid */}
@@ -128,12 +134,12 @@ export default function Dashboard() {
                             <div className="card-body">
                                 <h3 className="card-title mb-4">Quick Actions</h3>
                                 <div className="space-y-3">
-                                    <button className="btn btn-outline btn-block justify-start">
+                                    <Link href="/dashboard/create_card" className="btn btn-outline btn-block justify-start">
                                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                         </svg>
                                         Create New Card
-                                    </button>
+                                    </Link>
                                     <button className="btn btn-outline btn-block justify-start">
                                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
