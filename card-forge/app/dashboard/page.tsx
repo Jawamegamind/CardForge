@@ -1,14 +1,80 @@
 'use client'
 
+import { useEffect, useState } from "react"
 import Navbar from "../_components/navbar"
 import CreateCardForm from "../_components/createCardForm"
-import Link from "next/link"
+import { createClient } from "@/utils/supabase/client"
+
+interface BusinessCard {
+  id: string
+  name: string
+  title: string
+  company: string
+  phone: string
+  email: string
+  website: string
+  address: string
+  logo_text: string
+  template: string
+  created_at: string
+}
 
 export default function Dashboard() {
+    const [cards, setCards] = useState<BusinessCard[]>([])
+    const [loading, setLoading] = useState(true)
+    const [user, setUser] = useState<any>(null)
+    const supabase = createClient()
+
     // Function for modal pop up trigger
     function modalTrigger() {
         (document.getElementById('create_card_modal') as HTMLDialogElement)?.showModal()
     }
+
+    // Function to close modal
+    function closeModal() {
+        (document.getElementById('create_card_modal') as HTMLDialogElement)?.close()
+    }
+
+    // Fetch user and cards
+    const fetchCards = async () => {
+        try {
+            const { data: { user }, error: userError } = await supabase.auth.getUser()
+            
+            if (userError || !user) {
+                console.error('User not authenticated:', userError)
+                return
+            }
+
+            setUser(user)
+
+            const { data, error } = await supabase
+                .from('business_cards')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+
+            if (error) {
+                console.error('Error fetching cards:', error)
+                return
+            }
+
+            setCards(data || [])
+        } catch (error) {
+            console.error('Error:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Handle successful card save
+    const handleSaveSuccess = () => {
+        fetchCards() // Refresh the cards list
+        closeModal() // Close the modal
+    }
+
+    useEffect(() => {
+        fetchCards()
+    }, [])
 
     return (
         <div className="min-h-screen bg-base-200">
@@ -23,7 +89,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Quick Stats */}
-                {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div className="stat bg-base-100 rounded-box shadow">
                         <div className="stat-figure text-primary">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,33 +97,41 @@ export default function Dashboard() {
                             </svg>
                         </div>
                         <div className="stat-title">Total Cards</div>
-                        <div className="stat-value text-primary">3</div>
-                        <div className="stat-desc">2 active templates</div>
+                        <div className="stat-value text-primary">{loading ? '...' : cards.length}</div>
+                        <div className="stat-desc">{cards.length === 1 ? '1 card created' : `${cards.length} cards created`}</div>
                     </div>
                     
                     <div className="stat bg-base-100 rounded-box shadow">
                         <div className="stat-figure text-secondary">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <div className="stat-title">Views This Month</div>
-                        <div className="stat-value text-secondary">127</div>
-                        <div className="stat-desc">↗︎ 12% (22)</div>
+                        <div className="stat-title">Last Created</div>
+                        <div className="stat-value text-secondary">{
+                            loading ? '...' : 
+                            cards.length > 0 ? 
+                                new Date(cards[0].created_at).toLocaleDateString() : 
+                                'None'
+                        }</div>
+                        <div className="stat-desc">{
+                            cards.length > 0 ? 
+                                `${cards[0]?.name || 'Unknown'}` : 
+                                'Create your first card'
+                        }</div>
                     </div>
                     
                     <div className="stat bg-base-100 rounded-box shadow">
                         <div className="stat-figure text-accent">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                             </svg>
                         </div>
-                        <div className="stat-title">Shares</div>
-                        <div className="stat-value text-accent">42</div>
-                        <div className="stat-desc">This month</div>
+                        <div className="stat-title">Templates</div>
+                        <div className="stat-value text-accent">1</div>
+                        <div className="stat-desc">Modern template active</div>
                     </div>
-                </div> */}
+                </div>
 
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -67,67 +141,100 @@ export default function Dashboard() {
                             <div className="card-body">
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="card-title text-2xl">My Business Cards</h2>
-                                    <button
-                                        className="btn btn-primary btn-sm"
-                                        onClick={modalTrigger}
+                                    <div className="flex gap-2">
+                                        <button
+                                            className="btn btn-ghost btn-sm"
+                                            onClick={fetchCards}
+                                            disabled={loading}
                                         >
-                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        New Card
-                                    </button>
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            {loading ? 'Loading...' : 'Refresh'}
+                                        </button>
+                                        <button
+                                            className="btn btn-primary btn-sm"
+                                            onClick={modalTrigger}
+                                        >
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            New Card
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 {/* Business Cards Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Card 1 */}
-                                    <div className="card card-compact bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-md">
-                                        <div className="card-body">
-                                            <h3 className="font-bold text-lg">John Doe</h3>
-                                            <p className="text-sm opacity-90">Software Engineer</p>
-                                            <p className="text-sm opacity-90">TechCorp Inc.</p>
-                                            <div className="card-actions justify-end mt-2">
-                                                <button className="btn btn-sm btn-ghost">Edit</button>
-                                                <button className="btn btn-sm btn-ghost">Share</button>
+                                    {loading ? (
+                                        // Loading skeleton
+                                        <>
+                                            {[...Array(4)].map((_, i) => (
+                                                <div key={i} className="card card-compact bg-base-100 shadow-md">
+                                                    <div className="card-body">
+                                                        <div className="animate-pulse space-y-2">
+                                                            <div className="h-4 bg-base-300 rounded w-3/4"></div>
+                                                            <div className="h-3 bg-base-300 rounded w-1/2"></div>
+                                                            <div className="h-3 bg-base-300 rounded w-2/3"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </>
+                                    ) : cards.length > 0 ? (
+                                        // Display actual cards
+                                        cards.map((card, index) => (
+                                            <div key={card.id} className={`card card-compact shadow-md text-white ${
+                                                index % 3 === 0 ? 'bg-gradient-to-br from-primary to-primary-focus' :
+                                                index % 3 === 1 ? 'bg-gradient-to-br from-secondary to-secondary-focus' :
+                                                'bg-gradient-to-br from-accent to-accent-focus'
+                                            }`}>
+                                                <div className="card-body">
+                                                    <h3 className="font-bold text-lg">{card.name}</h3>
+                                                    <p className="text-sm opacity-90">{card.title}</p>
+                                                    <p className="text-sm opacity-90">{card.company}</p>
+                                                    <p className="text-xs opacity-75">{card.email}</p>
+                                                    <div className="card-actions justify-end mt-2">
+                                                        <button className="btn btn-sm btn-ghost hover:bg-white/20">Edit</button>
+                                                        <button className="btn btn-sm btn-ghost hover:bg-white/20">Share</button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Card 2 */}
-                                    <div className="card card-compact bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content shadow-md">
-                                        <div className="card-body">
-                                            <h3 className="font-bold text-lg">Jane Smith</h3>
-                                            <p className="text-sm opacity-90">Marketing Director</p>
-                                            <p className="text-sm opacity-90">Creative Agency</p>
-                                            <div className="card-actions justify-end mt-2">
-                                                <button className="btn btn-sm btn-ghost">Edit</button>
-                                                <button className="btn btn-sm btn-ghost">Share</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Card 3 */}
-                                    <div className="card card-compact bg-gradient-to-br from-accent to-accent-focus text-accent-content shadow-md">
-                                        <div className="card-body">
-                                            <h3 className="font-bold text-lg">Alex Johnson</h3>
-                                            <p className="text-sm opacity-90">Freelance Designer</p>
-                                            <p className="text-sm opacity-90">Independent</p>
-                                            <div className="card-actions justify-end mt-2">
-                                                <button className="btn btn-sm btn-ghost">Edit</button>
-                                                <button className="btn btn-sm btn-ghost">Share</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Add New Card */}
-                                    <div className="card card-compact bg-base-200 border-2 border-dashed border-base-300 hover:border-primary hover:bg-base-300 transition-all cursor-pointer">
-                                        <div className="card-body items-center justify-center">
-                                            <svg className="w-12 h-12 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        ))
+                                    ) : (
+                                        // Empty state
+                                        <div className="col-span-full text-center py-12">
+                                            <svg className="w-16 h-16 text-base-content/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a4 4 0 001-4V5z" />
                                             </svg>
-                                            <p className="text-base-content/70">Create New Card</p>
+                                            <h3 className="text-lg font-semibold text-base-content/70 mb-2">No business cards yet</h3>
+                                            <p className="text-base-content/50 mb-4">Create your first business card to get started</p>
+                                            <button
+                                                className="btn btn-primary"
+                                                onClick={modalTrigger}
+                                            >
+                                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                </svg>
+                                                Create Your First Card
+                                            </button>
                                         </div>
-                                    </div>
+                                    )}
+                                    
+                                    {/* Add New Card - only show if there are existing cards */}
+                                    {cards.length > 0 && (
+                                        <div 
+                                            className="card card-compact bg-base-200 border-2 border-dashed border-base-300 hover:border-primary hover:bg-base-300 transition-all cursor-pointer"
+                                            onClick={modalTrigger}
+                                        >
+                                            <div className="card-body items-center justify-center">
+                                                <svg className="w-12 h-12 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                </svg>
+                                                <p className="text-base-content/70">Create New Card</p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -169,39 +276,28 @@ export default function Dashboard() {
                             <div className="card-body">
                                 <h3 className="card-title mb-4">Recent Activity</h3>
                                 <div className="space-y-3">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="avatar placeholder">
-                                            <div className="bg-primary text-primary-content rounded-full w-8">
-                                                <span className="text-xs">JD</span>
+                                    {cards.length > 0 ? (
+                                        cards.slice(0, 3).map((card) => (
+                                            <div key={card.id} className="flex items-center space-x-3">
+                                                <div className="avatar placeholder">
+                                                    <div className="bg-primary text-primary-content rounded-full w-8">
+                                                        <span className="text-xs">{card.logo_text || card.name.charAt(0)}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-sm">Card "{card.name}" was created</p>
+                                                    <p className="text-xs text-base-content/70">
+                                                        {new Date(card.created_at).toLocaleDateString()}
+                                                    </p>
+                                                </div>
                                             </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-4">
+                                            <p className="text-sm text-base-content/70">No activity yet</p>
+                                            <p className="text-xs text-base-content/50">Create a card to see activity here</p>
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm">Card "John Doe" was viewed</p>
-                                            <p className="text-xs text-base-content/70">2 hours ago</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                        <div className="avatar placeholder">
-                                            <div className="bg-secondary text-secondary-content rounded-full w-8">
-                                                <span className="text-xs">JS</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm">Card "Jane Smith" was shared</p>
-                                            <p className="text-xs text-base-content/70">1 day ago</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                        <div className="avatar placeholder">
-                                            <div className="bg-accent text-accent-content rounded-full w-8">
-                                                <span className="text-xs">AJ</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm">New card "Alex Johnson" created</p>
-                                            <p className="text-xs text-base-content/70">3 days ago</p>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -213,12 +309,12 @@ export default function Dashboard() {
                                 <div className="flex items-center space-x-3 mb-4">
                                     <div className="avatar placeholder">
                                         <div className="bg-primary text-primary-content rounded-full w-12">
-                                            <span>U</span>
+                                            <span>{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="font-semibold">User Name</p>
-                                        <p className="text-sm text-base-content/70">user@example.com</p>
+                                        <p className="font-semibold">{user?.user_metadata?.full_name || 'User'}</p>
+                                        <p className="text-sm text-base-content/70">{user?.email || 'user@example.com'}</p>
                                     </div>
                                 </div>
                                 <button className="btn btn-outline btn-sm btn-block">Edit Profile</button>
@@ -227,11 +323,13 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+            
+            {/* Create Card Modal */}
             <dialog id="create_card_modal" className="modal">
                 <div className="modal-box max-w-5xl w-full">
                     <h3 className="text-2xl font-bold mb-4">Create Business Card</h3>
 
-                    <CreateCardForm />
+                    <CreateCardForm onSaveSuccess={handleSaveSuccess} />
 
                     <div className="modal-action mt-6">
                     <form method="dialog">
