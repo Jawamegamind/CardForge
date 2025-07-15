@@ -23,6 +23,7 @@ export default function Dashboard() {
     const [cards, setCards] = useState<BusinessCard[]>([])
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
+    const [userTable, setUserTable] = useState<any>(null)
     const supabase = createClient()
 
     // Function for modal pop up trigger
@@ -46,6 +47,20 @@ export default function Dashboard() {
             }
 
             setUser(user)
+
+            // Fetch user details from the users table using the UID from supabase auth
+            const { data: userData, error: userTableError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('user_id', user.id)
+                .single()
+            
+            if (userTableError) {
+                console.error('Error fetching user details:', userTableError)
+                return
+            }
+
+            setUserTable(userData)
 
             const { data, error } = await supabase
                 .from('business_cards')
@@ -313,8 +328,8 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="font-semibold">{user?.user_metadata?.full_name || 'User'}</p>
-                                        <p className="text-sm text-base-content/70">{user?.email || 'user@example.com'}</p>
+                                        <p className="font-semibold">{userTable?.full_name || 'User'}</p>
+                                        <p className="text-sm text-base-content/70">{userTable?.email || 'user@example.com'}</p>
                                     </div>
                                 </div>
                                 <button className="btn btn-outline btn-sm btn-block">Edit Profile</button>
