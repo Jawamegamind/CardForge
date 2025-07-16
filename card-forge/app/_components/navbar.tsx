@@ -1,6 +1,50 @@
-import { logout } from "../login/actions";
+'use client'
+
+import { useEffect, useState } from "react"
+import { createClient } from "@/utils/supabase/client"
+import { logout } from "../login/actions"
 
 export default function Navbar() {
+  const [user, setUser] = useState<any>(null)
+  const [userTable, setUserTable] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  // Fetch user data
+  const fetchUser = async () => {
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      
+      if (userError || !user) {
+        console.error('User not authenticated:', userError)
+        return
+      }
+
+      setUser(user)
+
+      // Fetch user details from the users table
+      const { data: userData, error: userTableError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (userTableError) {
+        console.error('Error fetching user details:', userTableError)
+        return
+      }
+
+      setUserTable(userData)
+    } catch (error) {
+      console.error('Error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchUser()
+  }, [])
   return (
     // <!-- Navbar -->
     <nav className="navbar justify-between bg-base-300">
@@ -12,16 +56,27 @@ export default function Navbar() {
 
         {/* <!-- Menu for mobile --> */}
         <div className="dropdown dropdown-end sm:hidden">
-            <button className="btn btn-ghost">
-                <i className="fa-solid fa-bars text-lg"></i>
+            <button className="btn btn-ghost btn-circle avatar">
+                <div className="w-10 rounded-full">
+                    {!loading && userTable?.profile_picture_url ? (
+                        <img
+                            alt="User profile"
+                            src={userTable.profile_picture_url}
+                        />
+                    ) : (
+                        <div className="placeholder">
+                            <div className="bg-primary text-primary-content rounded-full w-10 flex items-center justify-center">
+                                <span className="text-sm font-semibold">
+                                    {!loading && user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </button>
 
             <ul tabIndex={0} className="dropdown-content menu z-[1] bg-base-200 p-6 rounded-box shadow w-56 gap-2">
-                <li><a>About</a></li>
-                <li><a>Pricing</a></li>
-                <li><a>Blog</a></li>
-                <li><a>Contact</a></li>
-                <a className="btn btn-sm btn-primary">Log in</a>
+                <a className="btn btn-sm btn-primary" onClick={logout}>Log Out</a>
             </ul>
         </div>
 
@@ -29,13 +84,22 @@ export default function Navbar() {
         <ul className="hidden menu sm:menu-horizontal gap-2">
             <a href="/profile" className="btn btn-ghost btn-circle avatar">
                 <div className="w-10 rounded-full">
-                <img
-                    alt="User profile"
-                    src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                />
+                    {!loading && userTable?.profile_picture_url ? (
+                        <img
+                            alt="User profile"
+                            src={userTable.profile_picture_url}
+                        />
+                    ) : (
+                        <div className="placeholder">
+                            <div className="bg-primary text-primary-content rounded-full w-10 flex items-center justify-center">
+                                <span className="text-sm font-semibold">
+                                    {!loading && user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </a>
-            <li><a>Settings</a></li>
             <a className="btn btn-sm btn-primary" onClick={logout}>Log Out</a>
         </ul>
     </nav>
