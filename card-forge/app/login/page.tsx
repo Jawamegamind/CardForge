@@ -152,12 +152,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="form-control">
+          {/* <div className="form-control">
             <label className="cursor-pointer label self-start gap-2">
               <input type="checkbox" className="checkbox" />
               <span className="label-text">Remember me</span>
             </label>
-          </div>
+          </div> */}
 
           <button
             type="submit"
