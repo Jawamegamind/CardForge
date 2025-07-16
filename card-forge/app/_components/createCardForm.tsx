@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import html2canvas from 'html2canvas-pro'
 import jsPDF from 'jspdf'
 import { createClient } from '@/utils/supabase/client'
@@ -16,25 +16,70 @@ interface CardData {
   logoText: string
 }
 
-interface CreateCardFormProps {
-  onSaveSuccess?: () => void
+interface BusinessCard {
+  id: string
+  name: string
+  title: string
+  company: string
+  phone: string
+  email: string
+  website: string
+  address: string
+  logo_text: string
+  template: string
+  created_at: string
 }
 
-export default function CreateCardForm({ onSaveSuccess }: CreateCardFormProps) {
+interface CreateCardFormProps {
+  onSaveSuccess?: () => void
+  editCard?: BusinessCard | null
+  mode?: 'create' | 'edit'
+}
+
+export default function CreateCardForm({ onSaveSuccess, editCard, mode = 'create' }: CreateCardFormProps) {
   const [formData, setFormData] = useState<CardData>({
-    name: '',
-    title: '',
-    company: '',
-    phone: '',
-    email: '',
-    website: '',
-    address: '',
-    logoText: ''
+    name: editCard?.name || '',
+    title: editCard?.title || '',
+    company: editCard?.company || '',
+    phone: editCard?.phone || '',
+    email: editCard?.email || '',
+    website: editCard?.website || '',
+    address: editCard?.address || '',
+    logoText: editCard?.logo_text || ''
   })
   const [isSaving, setIsSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const cardRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
+
+  // Update form data when editCard changes
+  useEffect(() => {
+    if (editCard) {
+      setFormData({
+        name: editCard.name || '',
+        title: editCard.title || '',
+        company: editCard.company || '',
+        phone: editCard.phone || '',
+        email: editCard.email || '',
+        website: editCard.website || '',
+        address: editCard.address || '',
+        logoText: editCard.logo_text || ''
+      })
+    } else {
+      // Reset form for create mode
+      setFormData({
+        name: '',
+        title: '',
+        company: '',
+        phone: '',
+        email: '',
+        website: '',
+        address: '',
+        logoText: ''
+      })
+    }
+    setSaveStatus('idle') // Reset save status when mode changes
+  }, [editCard, mode])
 
   const handleInputChange = (field: keyof CardData, value: string) => {
     setFormData({ ...formData, [field]: value })
@@ -53,31 +98,49 @@ export default function CreateCardForm({ onSaveSuccess }: CreateCardFormProps) {
         throw new Error('User not authenticated')
       }
 
-      // Insert card data into Supabase
-      const { data, error } = await supabase
-        .from('business_cards')
-        .insert([
-          {
-            user_id: user.id,
-            name: formData.name,
-            title: formData.title,
-            company: formData.company,
-            phone: formData.phone,
-            email: formData.email,
-            website: formData.website,
-            address: formData.address,
-            logo_text: formData.logoText,
-            template: 'modern' // Default template for now
-          }
-        ])
-        .select()
+      const cardData = {
+        user_id: user.id,
+        name: formData.name,
+        title: formData.title,
+        company: formData.company,
+        phone: formData.phone,
+        email: formData.email,
+        website: formData.website,
+        address: formData.address,
+        logo_text: formData.logoText,
+        template: 'modern' // Default template for now
+      }
+
+      let data, error
+
+      if (mode === 'edit' && editCard) {
+        // Update existing card
+        const result = await supabase
+          .from('business_cards')
+          .update(cardData)
+          .eq('id', editCard.id)
+          .eq('user_id', user.id) // Ensure user can only edit their own cards
+          .select()
+        
+        data = result.data
+        error = result.error
+      } else {
+        // Insert new card
+        const result = await supabase
+          .from('business_cards')
+          .insert([cardData])
+          .select()
+        
+        data = result.data
+        error = result.error
+      }
 
       if (error) {
         throw error
       }
 
       setSaveStatus('success')
-      console.log('Card saved successfully:', data)
+      console.log(`Card ${mode === 'edit' ? 'updated' : 'saved'} successfully:`, data)
       
       // Call the callback to refresh the dashboard
       if (onSaveSuccess) {
@@ -249,7 +312,7 @@ export default function CreateCardForm({ onSaveSuccess }: CreateCardFormProps) {
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <span>Card saved successfully!</span>
+            <span>{mode === 'edit' ? 'Card updated successfully!' : 'Card saved successfully!'}</span>
           </div>
         )}
 
@@ -273,14 +336,14 @@ export default function CreateCardForm({ onSaveSuccess }: CreateCardFormProps) {
             {isSaving ? (
               <>
                 <span className="loading loading-spinner loading-sm"></span>
-                Saving...
+                {mode === 'edit' ? 'Updating...' : 'Saving...'}
               </>
             ) : (
               <>
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
-                Save Business Card
+                {mode === 'edit' ? 'Update Business Card' : 'Save Business Card'}
               </>
             )}
           </button>
@@ -328,7 +391,7 @@ export default function CreateCardForm({ onSaveSuccess }: CreateCardFormProps) {
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-800 tracking-wide">
+                    <h3 className="text-lg font-bold text-gray-800 tracking-wide truncate" title={formData.company || 'COMPANY NAME'}>
                       {formData.company || 'COMPANY NAME'}
                     </h3>
                     <p className="text-xs text-gray-600 tracking-widest">
@@ -338,7 +401,7 @@ export default function CreateCardForm({ onSaveSuccess }: CreateCardFormProps) {
                 </div>
                 
                 {/* Website */}
-                <div className="text-xs text-gray-600 mt-auto mb-4">
+                <div className="text-xs text-gray-600 mt-auto mb-4 truncate" title={formData.website || 'www.website.com'}>
                   {formData.website || 'www.website.com'}
                 </div>
               </div>
@@ -351,10 +414,10 @@ export default function CreateCardForm({ onSaveSuccess }: CreateCardFormProps) {
                 {/* Contact Information */}
                 <div className="space-y-2">
                   <div className="mb-3">
-                    <h2 className="text-base font-bold text-gray-800">
+                    <h2 className="text-base font-bold text-gray-800 truncate" title={formData.name || 'John Doe'}>
                       {formData.name || 'John Doe'}
                     </h2>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 truncate" title={formData.title || 'Creative Director'}>
                       {formData.title || 'Creative Director'}
                     </p>
                   </div>
@@ -363,21 +426,25 @@ export default function CreateCardForm({ onSaveSuccess }: CreateCardFormProps) {
                   <div className="space-y-1 text-xs text-gray-700">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-amber-400 rounded-full flex-shrink-0"></div>
-                      <span>{formData.phone || '+1 234 567 8900'}</span>
+                      <span className="truncate">{formData.phone || '+1 234 567 8900'}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-amber-400 rounded-full flex-shrink-0"></div>
-                      <span>{formData.email || 'john@company.com'}</span>
+                      <span className="truncate" title={formData.email || 'john@company.com'}>
+                        {formData.email || 'john@company.com'}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-amber-400 rounded-full flex-shrink-0"></div>
-                      <span className="text-xs leading-tight">
+                      <span className="text-xs leading-tight truncate" title={formData.address || '123 Business St, City, State'}>
                         {formData.address || '123 Business St, City, State'}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-amber-400 rounded-full flex-shrink-0"></div>
-                      <span>{formData.website || 'www.company.com'}</span>
+                      <span className="truncate" title={formData.website || 'www.company.com'}>
+                        {formData.website || 'www.company.com'}
+                      </span>
                     </div>
                   </div>
                 </div>

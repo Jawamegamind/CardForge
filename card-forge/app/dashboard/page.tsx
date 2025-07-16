@@ -25,6 +25,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
     const [userTable, setUserTable] = useState<any>(null)
+    const [editingCard, setEditingCard] = useState<BusinessCard | null>(null)
     const supabase = createClient()
 
     // Function to handle card deletion
@@ -49,12 +50,23 @@ export default function Dashboard() {
 
     // Function for modal pop up trigger
     function modalTrigger() {
-        (document.getElementById('create_card_modal') as HTMLDialogElement)?.showModal()
+        setEditingCard(null) // Reset editing card for create mode
+        const modal = document.getElementById('create_card_modal') as HTMLDialogElement
+        modal?.showModal()
+    }
+
+    // Function to trigger edit modal
+    function editCardModal(card: BusinessCard) {
+        setEditingCard(card)
+        const modal = document.getElementById('create_card_modal') as HTMLDialogElement
+        modal?.showModal()
     }
 
     // Function to close modal
     function closeModal() {
-        (document.getElementById('create_card_modal') as HTMLDialogElement)?.close()
+        setEditingCard(null) // Reset editing card when closing
+        const modal = document.getElementById('create_card_modal') as HTMLDialogElement
+        modal?.close()
     }
 
     function editProfileModal() {
@@ -109,7 +121,7 @@ export default function Dashboard() {
     // Handle successful card save
     const handleSaveSuccess = () => {
         fetchCards() // Refresh the cards list
-        closeModal() // Close the modal
+        closeModal() // Close the modal and reset editing state
     }
 
     useEffect(() => {
@@ -235,8 +247,13 @@ export default function Dashboard() {
                                                     <p className="text-sm opacity-90">{card.company}</p>
                                                     <p className="text-xs opacity-75">{card.email}</p>
                                                    <div className="card-actions justify-end mt-2">
-                                                        <button className="btn btn-sm btn-ghost hover:bg-white/20">Edit</button>
-                                                        <button className="btn btn-sm btn-ghost hover:bg-white/20">Share</button>
+                                                        <button 
+                                                            className="btn btn-sm btn-ghost hover:bg-white/20"
+                                                            onClick={() => editCardModal(card)}
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        {/* <button className="btn btn-sm btn-ghost hover:bg-white/20">Share</button> */}
                                                         <button
                                                             className="btn btn-sm btn-ghost hover:bg-red-500/20 text-red-500"
                                                             onClick={() => handleDelete(card.id)}
@@ -383,16 +400,22 @@ export default function Dashboard() {
                 </div>
             </div>
             
-            {/* Create Card Modal */}
+            {/* Create/Edit Card Modal */}
             <dialog id="create_card_modal" className="modal">
                 <div className="modal-box max-w-5xl w-full">
-                    <h3 className="text-2xl font-bold mb-4">Create Business Card</h3>
+                    <h3 className="text-2xl font-bold mb-4">
+                        {editingCard ? 'Edit Business Card' : 'Create Business Card'}
+                    </h3>
 
-                    <CreateCardForm onSaveSuccess={handleSaveSuccess} />
+                    <CreateCardForm 
+                        onSaveSuccess={handleSaveSuccess} 
+                        editCard={editingCard}
+                        mode={editingCard ? 'edit' : 'create'}
+                    />
 
                     <div className="modal-action mt-6">
                     <form method="dialog">
-                        <button className="btn">Close</button>
+                        <button className="btn" onClick={closeModal}>Close</button>
                     </form>
                     </div>
                 </div>
