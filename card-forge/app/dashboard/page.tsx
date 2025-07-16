@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Navbar from "../_components/navbar"
 import CreateCardForm from "../_components/createCardForm"
+import EditProfileForm from "../_components/editProfileForm"
 import { createClient } from "@/utils/supabase/client"
 
 interface BusinessCard {
@@ -34,6 +35,10 @@ export default function Dashboard() {
     // Function to close modal
     function closeModal() {
         (document.getElementById('create_card_modal') as HTMLDialogElement)?.close()
+    }
+
+    function editProfileModal() {
+        (document.getElementById('edit_profile_modal') as HTMLDialogElement)?.showModal()
     }
 
     // Fetch user and cards
@@ -322,17 +327,25 @@ export default function Dashboard() {
                             <div className="card-body">
                                 <h3 className="card-title mb-4">Profile</h3>
                                 <div className="flex items-center space-x-3 mb-4">
-                                    <div className="avatar placeholder">
-                                        <div className="bg-primary text-primary-content rounded-full w-12">
-                                            <span>{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
-                                        </div>
+                                    <div className="avatar">
+                                        {userTable?.profile_picture_url ? (
+                                            <div className="w-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                                                <img src={userTable.profile_picture_url} alt="Profile" />
+                                            </div>
+                                        ) : (
+                                            <div className="placeholder">
+                                                <div className="bg-primary text-primary-content rounded-full w-12">
+                                                    <span>{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div>
                                         <p className="font-semibold">{userTable?.full_name || 'User'}</p>
-                                        <p className="text-sm text-base-content/70">{userTable?.email || 'user@example.com'}</p>
+                                        <p className="text-sm text-base-content/70">{user?.email || 'user@example.com'}</p>
                                     </div>
                                 </div>
-                                <button className="btn btn-outline btn-sm btn-block">Edit Profile</button>
+                                <button className="btn btn-outline btn-sm btn-block" onClick={editProfileModal}>Edit Profile</button>
                             </div>
                         </div>
                     </div>
@@ -345,6 +358,21 @@ export default function Dashboard() {
                     <h3 className="text-2xl font-bold mb-4">Create Business Card</h3>
 
                     <CreateCardForm onSaveSuccess={handleSaveSuccess} />
+
+                    <div className="modal-action mt-6">
+                    <form method="dialog">
+                        <button className="btn">Close</button>
+                    </form>
+                    </div>
+                </div>
+            </dialog>
+
+            {/* Edit Profile Modal */}
+            <dialog id="edit_profile_modal" className="modal">
+                <div className="modal-box max-w-lg w-full">
+                    <h3 className="font-bold text-xl mb-4">Edit Profile</h3>
+
+                    <EditProfileForm user={user} userTable={userTable} onUpdate={fetchCards} />
 
                     <div className="modal-action mt-6">
                     <form method="dialog">
