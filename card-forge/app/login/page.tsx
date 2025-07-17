@@ -148,7 +148,7 @@ export default function LoginPage() {
             </label>
             <div className="flex justify-between items-center mt-1">
               <div>{errors.password && <div className="text-error text-sm">{errors.password}</div>}</div>
-              <a className="link link-accent text-sm">Forgot password?</a>
+              <Link href="/forgot-password" className="link link-accent text-sm">Forgot password?</Link>
             </div>
           </div>
 

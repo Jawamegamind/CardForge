@@ -72,3 +72,28 @@ export async function logout() {
     revalidatePath('/', 'layout')
     redirect('/login')
 }
+
+// Function for sending password reset email
+export async function resetPassword(formData: FormData) {
+    console.log("reset password action")
+    const cookieStore = cookies()
+    const supabase = await createClient(cookieStore)
+  
+    const email = formData.get('email') as string
+    
+    if (!email) {
+        return "Email is required"
+    }
+
+    // Send password reset email using Supabase Auth
+    const { error } = await supabase.auth.resetPasswordForEmail(
+        email
+    )
+
+    if (error) {
+        console.error('Error sending reset email:', error)
+        return "Failed to send reset email. Please try again."
+    }
+
+    return "success"
+}
