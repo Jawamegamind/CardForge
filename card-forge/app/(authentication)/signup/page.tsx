@@ -233,10 +233,17 @@ export default function SignupPage() {
 
                 <button 
                     type="submit" 
-                    className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
+                    className="btn btn-primary"
                     disabled={isLoading}
                 >
-                    {isLoading ? 'Creating...' : 'Create'}
+                    {isLoading ? (
+                        <>
+                            <span className="loading loading-spinner loading-sm"></span>
+                            Creating...
+                        </>
+                    ) : (
+                        'Create Account'
+                    )}
                 </button>
             </form>
         </div>

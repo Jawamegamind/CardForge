@@ -161,10 +161,17 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
+            className="btn btn-primary"
             disabled={isLoading}
           >
-            {isLoading ? 'Logging in...' : 'Log in'}
+            {isLoading ? (
+              <>
+                <span className="loading loading-spinner loading-sm"></span>
+                Logging in...
+              </>
+            ) : (
+              'Log in'
+            )}
           </button>
         </form>
       </div>
