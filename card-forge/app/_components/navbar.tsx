@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/utils/supabase/client"
-import { logout } from "../login/actions"
+import { logout } from "../(authentication)/login/actions"
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null)
