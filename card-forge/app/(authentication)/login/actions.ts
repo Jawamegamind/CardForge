@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
+import { getFullUrl } from "@/utils/url";
 
 export async function login(formData: FormData) {
     console.log("login action")
@@ -89,7 +90,7 @@ export async function resetPassword(formData: FormData) {
     const { error } = await supabase.auth.resetPasswordForEmail(
         email,
         {
-            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm?next=/reset-password`,
+            redirectTo: getFullUrl('/auth/confirm?next=/reset-password'),
         }
     )
 

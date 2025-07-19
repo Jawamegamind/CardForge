@@ -168,23 +168,15 @@ export default function Home() {
       {/* Footer */}
       <footer className="footer footer-center p-10 bg-base-200 text-base-content">
         <div>
-          <div className="text-2xl font-bold text-primary mb-4">CardForge</div>
-          <p className="text-base-content/70 max-w-md">
-            Create professional business cards that leave a lasting impression. 
-            Simple, fast, and beautiful.
-          </p>
-        </div>
-        <div>
-          <div className="grid grid-flow-col gap-4">
-            <a className="link link-hover">About</a>
-            <a className="link link-hover">Contact</a>
-            <a className="link link-hover">Privacy</a>
-            <a className="link link-hover">Terms</a>
-          </div>
-        </div>
-        <div>
-          <p className="text-sm text-base-content/60">
-            © 2025 CardForge. All rights reserved.
+          <p className="text-base text-white">
+            <a 
+              href="https://jawamegamind-portfolio.vercel.app" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="link text-white hover:text-primary font-medium"
+            >
+              © Jawad Saeed
+            </a>
           </p>
         </div>
       </footer>
