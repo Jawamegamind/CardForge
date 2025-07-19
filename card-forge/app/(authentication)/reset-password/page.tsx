@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 
-export default function ResetPassword() {
+function ResetPasswordForm() {
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -228,5 +228,29 @@ export default function ResetPassword() {
                 </div>
             </div>
         </div>
+    )
+}
+
+// Loading component for Suspense fallback
+function LoadingResetPassword() {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center p-4">
+            <div className="card w-full max-w-md bg-base-100 shadow-2xl">
+                <div className="card-body text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">CardForge</div>
+                    <div className="loading loading-spinner loading-lg text-primary"></div>
+                    <p className="text-base-content/70 mt-4">Loading password reset...</p>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// Main component with Suspense boundary
+export default function ResetPassword() {
+    return (
+        <Suspense fallback={<LoadingResetPassword />}>
+            <ResetPasswordForm />
+        </Suspense>
     )
 }
