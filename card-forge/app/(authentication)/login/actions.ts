@@ -86,11 +86,18 @@ export async function resetPassword(formData: FormData) {
         return "Email is required"
     }
 
+    // Get the redirect URL and log it for debugging
+    const redirectUrl = getFullUrl('/auth/confirm?next=/reset-password')
+    console.log('Reset password redirect URL:', redirectUrl)
+    console.log('Environment variables check:')
+    console.log('NEXT_PUBLIC_SITE_URL:', process.env.NEXT_PUBLIC_SITE_URL)
+    console.log('VERCEL_URL:', process.env.VERCEL_URL)
+
     // Send password reset email using Supabase Auth
     const { error } = await supabase.auth.resetPasswordForEmail(
         email,
         {
-            redirectTo: getFullUrl('/auth/confirm?next=/reset-password'),
+            redirectTo: redirectUrl,
         }
     )
 

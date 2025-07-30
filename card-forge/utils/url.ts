@@ -10,8 +10,9 @@ export function getBaseUrl(): string {
 
   // Server-side logic
   // 1. If NEXT_PUBLIC_SITE_URL is set, use it (for production overrides)
+  // Make sure to trim any trailing slashes
   if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
   }
 
   // 2. If deployed on Vercel, use VERCEL_URL
@@ -19,7 +20,12 @@ export function getBaseUrl(): string {
     return `https://${process.env.VERCEL_URL}`
   }
 
-  // 3. Fallback to localhost for development
+  // 3. Production fallback - replace with your actual domain
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://card-forge-alpha.vercel.app' // Replace with your actual domain
+  }
+
+  // 4. Fallback to localhost for development
   return 'http://localhost:3000'
 }
 
