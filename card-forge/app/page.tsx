@@ -55,7 +55,7 @@ export default function Home() {
                 <div className="bg-base-200 p-8">
                   <div className="bg-white shadow-xl border border-gray-100 rounded-lg p-6" style={{ width: '350px', height: '200px' }}>
                     <div className="flex h-full">
-                      <div className="w-1/2 flex flex-col justify-center">
+                      <div className="w-1/2 flex flex-col justify-center items-center text-center">
                         <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-full mb-3">
                           <span className="text-white font-bold text-lg">CF</span>
                         </div>
